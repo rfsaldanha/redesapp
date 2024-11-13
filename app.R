@@ -188,13 +188,27 @@ ui <- page_navbar(
 
 # Server
 server <- function(input, output, session) {
-  # Fill municipality selector
-  updateSelectizeInput(
-    session = session, 
-    inputId = "mun",
-    server = TRUE,
-    choices = mun_names
-  )
+  # Fill municipality selector and select from url parameter
+  observe({
+    query <- parseQueryString(session$clientData$url_search)
+
+    if(!is.null(query[['codMun']])){
+      updateSelectizeInput(
+        session = session, 
+        server = TRUE,
+        inputId = "mun",
+        choices = mun_names,
+        selected = query[['codMun']]
+      )
+    } else {
+      updateSelectizeInput(
+        session = session, 
+        server = TRUE,
+        inputId = "mun",
+        choices = mun_names
+      )
+    }
+  })
 
   # Update categories
   observe({
