@@ -2,6 +2,8 @@
 library(shiny)
 library(bslib)
 library(dplyr)
+library(lubridate)
+library(timetk)
 library(tidyr)
 library(DBI)
 library(duckdb)
@@ -9,6 +11,9 @@ library(sf)
 library(DT)
 library(vchartr)
 library(scales)
+library(brpop)
+library(igraph)
+library(visNetwork)
 
 # Connect to AIH database
 con <- dbConnect(
@@ -27,6 +32,18 @@ mun_seats <- readRDS("data/mun_seats.rds") |>
 # Municipality list for selector
 mun_names <- mun_seats$code_muni
 names(mun_names) <- paste(mun_seats$name_muni, "-", mun_seats$abbrev_state)
+
+# Municipality codes and names
+ref_mun_names <- mun_seats |>
+  st_drop_geometry() |>
+  select(code_muni, name_muni, abbrev_state) |>
+  mutate(name_muni = paste(name_muni, "-", abbrev_state)) |>
+  select(-abbrev_state) |>
+  as_tibble()
+
+# Time units for selector
+time_unit_list <- c("day", "week", "month")
+names(time_unit_list) <- c("Dia", "Semana", "Mês")
 
 # Read procedures table
 proc <- readRDS("data/proc.rds")
@@ -77,93 +94,133 @@ ui <- page_navbar(
       });
     ")
   ),
+  
+  # Sidebar
+  sidebar = sidebar(
+    # Select municipality
+    selectizeInput(
+      inputId = "mun", 
+      label = "Município", 
+      choices = NULL
+    ),
+
+    # Select extreme event
+    selectizeInput(
+      inputId = "cat_even", 
+      label = "Categoria do evento", 
+      choices = NULL
+    ),
+
+    selectizeInput(
+      inputId = "date_even", 
+      label = "Data do evento", 
+      choices = NULL
+    ),
+
+    # Select procedure
+    selectizeInput(
+      inputId = "proc_group", 
+      label = "Grupo de procedimentos", 
+      choices = NULL
+    ),
+
+    # Select unit
+    selectizeInput(
+      inputId = "time_unit",
+      label = "Unidade de tempo",
+      choices = time_unit_list,
+      selected = "week"
+    ),
+
+    # Select horizon
+    sliderInput(
+      inputId = "horizon", 
+      label = "Horizonte",
+      min = 30, 
+      max = 390,
+      step = 30, 
+      value = 90
+    ),
+
+  ),
 
   # Map page
   nav_panel(
-    title = "Internações",
+    title = "Série temporal",
+    # Cards
+    card(
+      card_header("Internações do próprio muncípio"),
+      card_body(class = "p-0", vchartOutput(outputId = "net_local"))
+    ),
+    card(
+      card_header("Internações enviadas para outros muncípios"),
+      card_body(class = "p-0", vchartOutput(outputId = "net_out"))
+    ),
+    card(
+      card_header("Internações recebidas de outros municípios"),
+      card_body(class = "p-0", vchartOutput(outputId = "net_in"))
+    )
+  ),
 
-    # Sidebar
-    layout_sidebar(
-      sidebar = sidebar(        
-        # Select municipality
-        selectizeInput(
-          inputId = "mun", 
-          label = "Município", 
-          choices = NULL
-        ),
+  # Sankey page
+  nav_panel(
+    title = "Fluxo",
 
-        # Select extreme event
-        selectizeInput(
-          inputId = "cat_even", 
-          label = "Categoria do evento", 
-          choices = NULL
-        ),
-
-        selectizeInput(
-          inputId = "date_even", 
-          label = "Data do evento", 
-          choices = NULL
-        ),
-
-        # Select procedure
-        selectizeInput(
-          inputId = "proc_group", 
-          label = "Grupo de procedimentos", 
-          choices = NULL
-        ),
-
-        # Select horizon
-        sliderInput(
-          inputId = "horizon", 
-          label = "Horizonte (dias)",
-          min = 30, 
-          max = 150,
-          step = 30, 
-          value = 90
-        ),
-
+    # Graphs card
+    accordion(
+      multiple = FALSE,
+      accordion_panel(
+        "Internações enviadas para outros muncípios",
+        layout_column_wrap(
+          width = 1/2,
+          card(
+            card_header("Antes do evento"),
+            vchartOutput(outputId = "sankey_out_1")
+          ),
+          card(
+            card_header("Após o evento"),
+            vchartOutput(outputId = "sankey_out_2")
+          )
+        )
       ),
-
-      # Cards
-      card(
-        card_header("Internações do próprio muncípio"),
-        card_body(class = "p-0", vchartOutput(outputId = "net_local"))
-      ),
-      card(
-        card_header("Internações enviadas para outros muncípios"),
-        card_body(class = "p-0", vchartOutput(outputId = "net_out"))
-      ),
-      card(
-        card_header("Internações recebidas de outros municípios"),
-        card_body(class = "p-0", vchartOutput(outputId = "net_in"))
+      accordion_panel(
+        "Internações recebidas de outros muncípios",
+        layout_column_wrap(
+          width = 1/2,
+          card(
+            card_header("Antes do evento"),
+            vchartOutput(outputId = "sankey_in_1")
+          ),
+          card(
+            card_header("Após o evento"),
+            vchartOutput(outputId = "sankey_in_2")
+          )
+        )
       )
-
     )
   ),
 
   # Graphs page
   nav_panel(
-    title = "Página B",
+    title = "Região de saúde",
 
-    layout_sidebar(
-      sidebar = sidebar(
-        
-      ),
-
-      # Graphs card
+    # Graphs card
+    layout_column_wrap(
+      width = 1/2,
       card(
-        full_screen = TRUE,
-        card_header("Card header"),
-        card_body(
-          
-        )
+        card_header("Antes do evento"),
+        visNetworkOutput(outputId = "graph_1")
+      ),
+      card(
+        card_header("Após o evento"),
+        visNetworkOutput(outputId = "graph_2")
       )
     )
   ),
 
   # About page
   nav_panel(
-    title = "Página B",
+    title = "Sobre o projeto",
     card(
       card_header("Card title"),
       p("Bla bla bla.")
@@ -291,13 +348,16 @@ server <- function(input, output, session) {
     req(input$proc_group)
     req(input$horizon)
 
+    # Reference dates around event date
     date_even_1 <- as.Date(input$date_even) - input$horizon
     date_even_2 <- as.Date(input$date_even) + input$horizon
 
+    # Query table about municipality and dates
     query <- tbl(con, "aih") |>
       filter(munic_res == input$mun | munic__mov == input$mun) |>
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
+    # Filter procedure
     if(input$proc_group != "Todos"){
       proc_vct <- proc |>
         filter(grupo == input$proc_group) |>
@@ -307,6 +367,10 @@ server <- function(input, output, session) {
       query <- query |>
         filter(proc_rea %in% proc_vct)
     }
+
+    # Modify dates to aggregate
+    query <- query |>
+      mutate(dt_inter = floor_date(dt_inter, unit = input$time_unit))
     
     query |>
       group_by(dt_inter, munic_res, munic__mov) |>
@@ -325,7 +389,7 @@ server <- function(input, output, session) {
       filter(munic_res == munic__mov) |>
       summarise(freq = sum(freq), .by = dt_inter) |>
       arrange(dt_inter) |>
-      complete(dt_inter = seq.Date(min_date, max_date, by = "day"), fill = list(freq = 0)) |>
+      pad_by_time(dt_inter, .pad_value = 0) |>
       vchart() |>
       v_line(aes(x = dt_inter, y = freq)) |>
       v_smooth(aes(x = dt_inter, y = freq)) |>
@@ -333,7 +397,8 @@ server <- function(input, output, session) {
         x = as.Date(input$date_even),
         .label.text = "Evento"
       ) |>
-      v_scale_x_date(min = min_date, max = max_date)
+      v_scale_x_date(min = min_date, max = max_date) |>
+      v_scale_y_continuous(min = 0)
   })
 
   output$net_in <- renderVchart({
@@ -347,7 +412,7 @@ server <- function(input, output, session) {
       filter(!munic_res == munic__mov) |>
       summarise(freq = sum(freq), .by = dt_inter) |>
       arrange(dt_inter) |>
-      complete(dt_inter = seq.Date(min_date, max_date, by = "day"), fill = list(freq = 0)) |>
+      pad_by_time(dt_inter, .pad_value = 0) |>
       vchart() |>
       v_line(aes(x = dt_inter, y = freq)) |>
       v_smooth(aes(x = dt_inter, y = freq)) |>
@@ -355,7 +420,8 @@ server <- function(input, output, session) {
         x = as.Date(input$date_even),
         .label.text = "Evento"
       ) |>
-      v_scale_x_date(min = min_date, max = max_date)
+      v_scale_x_date(min = min_date, max = max_date) |>
+        v_scale_y_continuous(min = 0)
   })
 
   output$net_out <- renderVchart({
@@ -369,7 +435,7 @@ server <- function(input, output, session) {
       filter(!munic_res == munic__mov) |>
       summarise(freq = sum(freq), .by = dt_inter) |>
       arrange(dt_inter) |>
-      complete(dt_inter = seq.Date(min_date, max_date, by = "day"), fill = list(freq = 0)) |>
+      pad_by_time(dt_inter, .pad_value = 0) |>
       vchart() |>
       v_line(aes(x = dt_inter, y = freq)) |>
       v_smooth(aes(x = dt_inter, y = freq)) |>
@@ -377,7 +443,178 @@ server <- function(input, output, session) {
         x = as.Date(input$date_even),
         .label.text = "Evento"
       ) |>
-      v_scale_x_date(min = min_date, max = max_date)
+      v_scale_x_date(min = min_date, max = max_date) |>
+      v_scale_y_continuous(min = 0)
+  })
+
+  # Render sankeys
+  output$sankey_out_1 <- renderVchart({
+    aih_data() |>
+      filter(munic_res == input$mun) |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter < input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni) |>
+      vchart() |>
+      v_sankey(aes(munic__mov, munic_res, , value = freq))
+  })
+
+  output$sankey_out_2 <- renderVchart({
+    aih_data() |>
+      filter(munic_res == input$mun) |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter > input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni) |>
+      vchart() |>
+      v_sankey(aes(munic__mov, munic_res, , value = freq))
+  })
+
+  output$sankey_in_1 <- renderVchart({
+    aih_data() |>
+      filter(munic_res != input$mun) |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter < input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni) |>
+      vchart() |>
+      v_sankey(aes(munic__mov, munic_res, , value = freq))
+  })
+
+  output$sankey_in_2 <- renderVchart({
+    aih_data() |>
+      filter(munic_res != input$mun) |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter > input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni) |>
+      vchart() |>
+      v_sankey(aes(munic__mov, munic_res, , value = freq))
+  })
+
+  # AIH data on health region
+  aih_data_reg <- reactive({
+    req(input$mun)
+    req(input$date_even)
+    req(input$proc_group)
+    req(input$horizon)
+
+    # Reference dates around event date
+    date_even_1 <- as.Date(input$date_even) - input$horizon
+    date_even_2 <- as.Date(input$date_even) + input$horizon
+
+    # Identify municipality's region
+    reg <- mun_reg_saude_449 |>
+      filter(code_muni == input$mun) |>
+      pull(codi_reg_saude)
+
+    # Municiality list within region
+    list_mun <- mun_reg_saude_449 |>
+      filter(codi_reg_saude == reg) |>
+      pull(code_muni)
+
+    # Query table about municipality list and dates
+    query <- tbl(con, "aih") |>
+      filter(munic_res %in% list_mun | munic__mov %in% list_mun) |>
+      filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
+
+    # Filter procedure
+    if(input$proc_group != "Todos"){
+      proc_vct <- proc |>
+        filter(grupo == input$proc_group) |>
+        select(cod) |>
+        pull(cod)
+
+      query <- query |>
+        filter(proc_rea %in% proc_vct)
+    }
+
+    # Modify dates to aggregate
+    query <- query |>
+      mutate(dt_inter = floor_date(dt_inter, unit = input$time_unit))
+    
+    query |>
+      group_by(dt_inter, munic_res, munic__mov) |>
+      summarise(freq = n()) |>
+      ungroup() |>
+      collect()
+  })
+
+  # Render graphs
+  output$graph_1 <- renderVisNetwork({
+    res <- aih_data_reg() |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter < input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni, value = freq) |>
+      select(munic_res, munic__mov, value)
+
+    i_res <- graph_from_data_frame(res)
+    v_res <- toVisNetworkData(i_res)
+
+    visNetwork(
+      nodes = v_res$nodes,
+      edges = v_res$edges
+    )
+  })
+
+  output$graph_2 <- renderVisNetwork({
+    res <- aih_data_reg() |>
+      filter(!munic_res == munic__mov) |>
+      filter(dt_inter > input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni, value = freq) |>
+      select(munic_res, munic__mov, value)
+
+    i_res <- graph_from_data_frame(res)
+    v_res <- toVisNetworkData(i_res)
+
+    visNetwork(
+      nodes = v_res$nodes,
+      edges = v_res$edges
+    )
   })
 }
 
