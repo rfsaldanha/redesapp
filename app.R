@@ -144,7 +144,7 @@ ui <- page_navbar(
 
   ),
 
-  # Map page
+  # Time series page
   nav_panel(
     title = "Série temporal",
     # Cards
