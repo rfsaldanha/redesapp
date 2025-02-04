@@ -162,6 +162,15 @@ ui <- page_navbar(
     )
   ),
 
+  # Map page
+  nav_panel(
+    title = "Mapa de fluxos",
+    # Cards
+    card(
+      card_body(class = "p-0", htmlOutput("map_iframe"))
+    )
+  ),
+
   # Sankey page
   nav_panel(
     title = "Fluxo",
@@ -378,6 +387,14 @@ server <- function(input, output, session) {
       ungroup() |>
       collect()
   })
+
+  # Flow map iframe
+  output$map_iframe <- renderUI({
+    iframe_url <- "http://157.86.68.104/inova/fluxo/index.php?uf=16&anos=2020&evento=1600152020-11-06&tipo="
+
+    tags$iframe(src = iframe_url, width = "100%", height = "800px")
+  })
+
 
   output$net_local <- renderVchart({
     tmp <- aih_data()
