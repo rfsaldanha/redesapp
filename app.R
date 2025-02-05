@@ -14,6 +14,7 @@ library(scales)
 library(brpop)
 library(igraph)
 library(visNetwork)
+library(glue)
 
 # Connect to AIH database
 con <- dbConnect(
@@ -390,7 +391,19 @@ server <- function(input, output, session) {
 
   # Flow map iframe
   output$map_iframe <- renderUI({
-    iframe_url <- "http://157.86.68.104/inova/fluxo/index.php?uf=16&anos=2020&evento=1600152020-11-06&tipo="
+    req(input$mun)
+    req(input$date_even)
+    req(input$proc_group)
+    req(input$horizon)
+
+    # Iframe variables
+    uf <- substr(input$mun, 0, 2)
+    anos <-  substr(input$date_even, 0, 4)
+    evento <- glue("{input$mun}{input$date_even}")
+    tipo <- ifelse(test = input$proc_group == "Todos", yes = "", no = input$proc_group) 
+    horizon <- input$horizon
+
+    iframe_url <- glue("http://157.86.68.104/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}")
 
     tags$iframe(src = iframe_url, width = "100%", height = "800px")
   })
