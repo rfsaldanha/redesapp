@@ -403,7 +403,7 @@ server <- function(input, output, session) {
     tipo <- ifelse(test = input$proc_group == "Todos", yes = "", no = input$proc_group) 
     horizon <- input$horizon
 
-    iframe_url <- glue("http://157.86.68.104/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}")
+    iframe_url <- glue("http://157.86.68.234/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}")
 
     tags$iframe(src = iframe_url, width = "100%", height = "800px")
   })
