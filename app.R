@@ -493,7 +493,7 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, , value = freq))
+      v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
   output$sankey_out_2 <- renderVchart({
@@ -511,7 +511,7 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, , value = freq))
+      v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
   output$sankey_in_1 <- renderVchart({
