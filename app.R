@@ -150,11 +150,11 @@ ui <- page_navbar(
     title = "Série temporal",
     # Cards
     card(
-      card_header("Internações do próprio muncípio"),
+      card_header("Internações do próprio município"),
       card_body(class = "p-0", vchartOutput(outputId = "net_local"))
     ),
     card(
-      card_header("Internações enviadas para outros muncípios"),
+      card_header("Internações enviadas para outros municípios"),
       card_body(class = "p-0", vchartOutput(outputId = "net_out"))
     ),
     card(
@@ -178,31 +178,31 @@ ui <- page_navbar(
 
     # Graphs card
     accordion(
-      multiple = FALSE,
+      multiple = TRUE,
       accordion_panel(
-        "Internações enviadas para outros muncípios",
+        "Antes do evento",
         layout_column_wrap(
           width = 1/2,
           card(
-            card_header("Antes do evento"),
+            card_header("Internações enviadas para outros municípios"),
             vchartOutput(outputId = "sankey_out_1")
           ),
           card(
-            card_header("Após o evento"),
-            vchartOutput(outputId = "sankey_out_2")
+            card_header("Internações recebidas de outros municípios"),
+            vchartOutput(outputId = "sankey_in_1")
           )
         )
       ),
       accordion_panel(
-        "Internações recebidas de outros muncípios",
+        "Depois do evento",
         layout_column_wrap(
           width = 1/2,
           card(
-            card_header("Antes do evento"),
-            vchartOutput(outputId = "sankey_in_1")
+            card_header("Internações enviadas para outros municípios"),
+            vchartOutput(outputId = "sankey_out_2")
           ),
           card(
-            card_header("Após o evento"),
+            card_header("Internações recebidas de outros municípios"),
             vchartOutput(outputId = "sankey_in_2")
           )
         )
@@ -479,9 +479,10 @@ server <- function(input, output, session) {
 
   # Render sankeys
   output$sankey_out_1 <- renderVchart({
+    # Sent to others, before
     aih_data() |>
-      filter(munic_res == input$mun) |>
-      filter(!munic_res == munic__mov) |>
+      filter(munic_res != munic__mov) |>
+      filter(munic_res == input$mun & munic__mov != input$mun) |>
       filter(dt_inter < input$date_even) |>
       group_by(munic_res, munic__mov) |>
       summarise(freq = sum(freq, na.rm = TRUE)) |>
@@ -493,14 +494,33 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))
+      v_sankey(aes(munic__mov, munic_res, value = freq))      
   })
 
   output$sankey_out_2 <- renderVchart({
     aih_data() |>
-      filter(munic_res == input$mun) |>
-      filter(!munic_res == munic__mov) |>
-      filter(dt_inter > input$date_even) |>
+      filter(munic_res != munic__mov) |>
+      filter(munic_res == input$mun & munic__mov != input$mun) |>
+      filter(dt_inter >= input$date_even) |>
+      group_by(munic_res, munic__mov) |>
+      summarise(freq = sum(freq, na.rm = TRUE)) |>
+      ungroup() |>
+      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+      select(-munic_res) |>
+      rename(munic_res = name_muni) |>
+      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+      select(-munic__mov) |>
+      rename(munic__mov = name_muni) |>
+      vchart() |>
+      v_sankey(aes(munic__mov, munic_res, value = freq))  
+  })
+
+  output$sankey_in_1 <- renderVchart({
+    # Received from others, before
+    aih_data() |>
+      filter(munic_res != munic__mov) |>
+      filter(munic_res != input$mun & munic__mov == input$mun) |>
+      filter(dt_inter < input$date_even) |>
       group_by(munic_res, munic__mov) |>
       summarise(freq = sum(freq, na.rm = TRUE)) |>
       ungroup() |>
@@ -514,29 +534,11 @@ server <- function(input, output, session) {
       v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
-  output$sankey_in_1 <- renderVchart({
-    aih_data() |>
-      filter(munic_res != input$mun) |>
-      filter(!munic_res == munic__mov) |>
-      filter(dt_inter < input$date_even) |>
-      group_by(munic_res, munic__mov) |>
-      summarise(freq = sum(freq, na.rm = TRUE)) |>
-      ungroup() |>
-      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
-      select(-munic_res) |>
-      rename(munic_res = name_muni) |>
-      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
-      select(-munic__mov) |>
-      rename(munic__mov = name_muni) |>
-      vchart() |>
-      v_sankey(aes(munic__mov, munic_res, , value = freq))
-  })
-
   output$sankey_in_2 <- renderVchart({
     aih_data() |>
-      filter(munic_res != input$mun) |>
-      filter(!munic_res == munic__mov) |>
-      filter(dt_inter > input$date_even) |>
+      filter(munic_res != munic__mov) |>
+      filter(munic_res != input$mun & munic__mov == input$mun) |>
+      filter(dt_inter >= input$date_even) |>
       group_by(munic_res, munic__mov) |>
       summarise(freq = sum(freq, na.rm = TRUE)) |>
       ungroup() |>
@@ -547,7 +549,7 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, , value = freq))
+      v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
   # AIH data on health region
