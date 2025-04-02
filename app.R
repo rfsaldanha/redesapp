@@ -18,8 +18,8 @@ library(glue)
 
 # Connect to AIH database
 con <- dbConnect(
-  duckdb(), 
-  dbdir = "../inova_redes/aih.duckdb", 
+  duckdb(),
+  dbdir = "../inova_redes/aih.duckdb",
   read_only = TRUE
 )
 
@@ -51,23 +51,30 @@ proc <- readRDS("data/proc.rds")
 
 # Interface
 ui <- page_navbar(
-  title = "EERAS Brasil", 
+  title = "EERAS Brasil",
   theme = bs_theme(bootswatch = "shiny"),
 
   # Logo
   tags$head(
     tags$script(
-      HTML('$(document).ready(function() {
+      HTML(
+        '$(document).ready(function() {
              $(".navbar .container-fluid")
                .append("<img id = \'myImage\' src=\'selo_obs_h.png\' align=\'right\' height = \'57.5px\'>"  );
-            });')),
+            });'
+      )
+    ),
     tags$style(
-      HTML('@media (max-width:992px) { #myImage { position: fixed; right: 10%; top: 0.5%; }}')
-    )),
+      HTML(
+        '@media (max-width:992px) { #myImage { position: fixed; right: 10%; top: 0.5%; }}'
+      )
+    )
+  ),
 
   # Translation
   tags$script(
-    HTML("
+    HTML(
+      "
       $(document).ready(function() {
         // Change the text 'Expand' in all tooltips
         $('.card.bslib-card bslib-tooltip > div').each(function() {
@@ -93,35 +100,36 @@ ui <- page_navbar(
           });
         });
       });
-    ")
+    "
+    )
   ),
-  
+
   # Sidebar
   sidebar = sidebar(
     # Select municipality
     selectizeInput(
-      inputId = "mun", 
-      label = "Município", 
+      inputId = "mun",
+      label = "Município",
       choices = NULL
     ),
 
     # Select extreme event
     selectizeInput(
-      inputId = "cat_even", 
-      label = "Categoria do evento", 
+      inputId = "cat_even",
+      label = "Categoria do evento",
       choices = NULL
     ),
 
     selectizeInput(
-      inputId = "date_even", 
-      label = "Data do evento", 
+      inputId = "date_even",
+      label = "Data do evento",
       choices = NULL
     ),
 
     # Select procedure
     selectizeInput(
-      inputId = "proc_group", 
-      label = "Grupo de procedimentos", 
+      inputId = "proc_group",
+      label = "Grupo de procedimentos",
       choices = NULL
     ),
 
@@ -135,14 +143,13 @@ ui <- page_navbar(
 
     # Select horizon
     sliderInput(
-      inputId = "horizon", 
+      inputId = "horizon",
       label = "Horizonte",
-      min = 30, 
+      min = 30,
       max = 390,
-      step = 30, 
+      step = 30,
       value = 90
     ),
-
   ),
 
   # Time series page
@@ -182,7 +189,7 @@ ui <- page_navbar(
       accordion_panel(
         "Antes do evento",
         layout_column_wrap(
-          width = 1/2,
+          width = 1 / 2,
           card(
             card_header("Internações enviadas para outros municípios"),
             vchartOutput(outputId = "sankey_out_1")
@@ -196,7 +203,7 @@ ui <- page_navbar(
       accordion_panel(
         "Depois do evento",
         layout_column_wrap(
-          width = 1/2,
+          width = 1 / 2,
           card(
             card_header("Internações enviadas para outros municípios"),
             vchartOutput(outputId = "sankey_out_2")
@@ -216,7 +223,7 @@ ui <- page_navbar(
 
     # Graphs card
     layout_column_wrap(
-      width = 1/2,
+      width = 1 / 2,
       card(
         card_header("Antes do evento"),
         visNetworkOutput(outputId = "graph_1")
@@ -259,9 +266,9 @@ server <- function(input, output, session) {
   observe({
     query <- parseQueryString(session$clientData$url_search)
 
-    if(!is.null(query[['codMun']])){
+    if (!is.null(query[['codMun']])) {
       updateSelectizeInput(
-        session = session, 
+        session = session,
         server = TRUE,
         inputId = "mun",
         choices = mun_names,
@@ -269,7 +276,7 @@ server <- function(input, output, session) {
       )
     } else {
       updateSelectizeInput(
-        session = session, 
+        session = session,
         server = TRUE,
         inputId = "mun",
         choices = mun_names
@@ -287,7 +294,7 @@ server <- function(input, output, session) {
       pull(categoria)
 
     updateSelectizeInput(
-      session = session, 
+      session = session,
       inputId = "cat_even",
       server = FALSE,
       choices = categ
@@ -305,10 +312,9 @@ server <- function(input, output, session) {
       distinct(date) |>
       arrange(date) |>
       pull(date)
-      
 
     updateSelectizeInput(
-      session = session, 
+      session = session,
       inputId = "date_even",
       server = FALSE,
       choices = dates
@@ -342,9 +348,9 @@ server <- function(input, output, session) {
       select(grupo) |>
       distinct(grupo) |>
       pull(grupo)
-      
+
     updateSelectizeInput(
-      session = session, 
+      session = session,
       inputId = "proc_group",
       server = FALSE,
       choices = c("Todos", proc_groups)
@@ -368,7 +374,7 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if(input$proc_group != "Todos"){
+    if (input$proc_group != "Todos") {
       proc_vct <- proc |>
         filter(grupo == input$proc_group) |>
         select(cod) |>
@@ -381,7 +387,7 @@ server <- function(input, output, session) {
     # Modify dates to aggregate
     query <- query |>
       mutate(dt_inter = floor_date(dt_inter, unit = input$time_unit))
-    
+
     query |>
       group_by(dt_inter, munic_res, munic__mov) |>
       summarise(freq = n()) |>
@@ -398,16 +404,21 @@ server <- function(input, output, session) {
 
     # Iframe variables
     uf <- substr(input$mun, 0, 2)
-    anos <-  substr(input$date_even, 0, 4)
+    anos <- substr(input$date_even, 0, 4)
     evento <- glue("{input$mun}{input$date_even}")
-    tipo <- ifelse(test = input$proc_group == "Todos", yes = "", no = input$proc_group) 
+    tipo <- ifelse(
+      test = input$proc_group == "Todos",
+      yes = "",
+      no = input$proc_group
+    )
     horizon <- input$horizon
 
-    iframe_url <- glue("http://157.86.68.234/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}")
+    iframe_url <- glue(
+      "http://157.86.68.234/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}"
+    )
 
     tags$iframe(src = iframe_url, width = "100%", height = "800px")
   })
-
 
   output$net_local <- renderVchart({
     tmp <- aih_data()
@@ -451,12 +462,12 @@ server <- function(input, output, session) {
         .label.text = "Evento"
       ) |>
       v_scale_x_date(min = min_date, max = max_date) |>
-        v_scale_y_continuous(min = 0)
+      v_scale_y_continuous(min = 0)
   })
 
   output$net_out <- renderVchart({
     tmp <- aih_data()
-    
+
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
 
@@ -494,7 +505,7 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))      
+      v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
   output$sankey_out_2 <- renderVchart({
@@ -512,7 +523,7 @@ server <- function(input, output, session) {
       select(-munic__mov) |>
       rename(munic__mov = name_muni) |>
       vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))  
+      v_sankey(aes(munic__mov, munic_res, value = freq))
   })
 
   output$sankey_in_1 <- renderVchart({
@@ -579,7 +590,7 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if(input$proc_group != "Todos"){
+    if (input$proc_group != "Todos") {
       proc_vct <- proc |>
         filter(grupo == input$proc_group) |>
         select(cod) |>
@@ -592,7 +603,7 @@ server <- function(input, output, session) {
     # Modify dates to aggregate
     query <- query |>
       mutate(dt_inter = floor_date(dt_inter, unit = input$time_unit))
-    
+
     query |>
       group_by(dt_inter, munic_res, munic__mov) |>
       summarise(freq = n()) |>
