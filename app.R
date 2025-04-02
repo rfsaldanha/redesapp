@@ -392,6 +392,81 @@ server <- function(input, output, session) {
       group_by(dt_inter, munic_res, munic__mov) |>
       summarise(freq = n()) |>
       ungroup() |>
+      arrange(dt_inter, munic_res, munic__mov) |>
+      collect()
+  })
+
+  # Model sent cases
+  mod_sent <- reactive({
+    req(input$mun)
+    req(input$date_even)
+    req(input$proc_group)
+    req(input$horizon)
+
+    # Reference dates around event date
+    date_even_1 <- as.Date(input$date_even) - input$horizon
+    date_even_2 <- as.Date(input$date_even) + input$horizon
+
+    # Query table about municipality and dates
+    query <- tbl(con, "mod_enviados") |>
+      filter(cod6 == input$mun) |>
+      filter(date >= date_even_1 & date <= date_even_2)
+
+    # Filter procedure
+    if (input$proc_group != "Todos") {
+      query <- query |>
+        filter(tipo == input$proc_group)
+    }
+
+    # Modify dates to aggregate
+    query <- query |>
+      mutate(date = floor_date(date, unit = input$time_unit))
+
+    query |>
+      group_by(date) |>
+      summarise(
+        y_fit_upper = mean(y_fit_upper, na.rm = TRUE),
+        y_fit_lower = mean(y_fit_lower, na.rm = TRUE)
+      ) |>
+      ungroup() |>
+      arrange(date) |>
+      collect()
+  })
+
+  # Model received cases
+  mod_receiv <- reactive({
+    req(input$mun)
+    req(input$date_even)
+    req(input$proc_group)
+    req(input$horizon)
+
+    # Reference dates around event date
+    date_even_1 <- as.Date(input$date_even) - input$horizon
+    date_even_2 <- as.Date(input$date_even) + input$horizon
+
+    # Query table about municipality and dates
+    query <- tbl(con, "mod_recebidos") |>
+      filter(cod6 == input$mun) |>
+      filter(date >= date_even_1 & date <= date_even_2)
+
+    # Filter procedure
+    if (input$proc_group != "Todos") {
+      query <- query |>
+        filter(tipo == input$proc_group)
+    }
+
+    # Modify dates to aggregate
+    query <- query |>
+      mutate(date = floor_date(date, unit = input$time_unit))
+
+    query |>
+      group_by(date) |>
+      summarise(
+        y_fit_upper = mean(y_fit_upper, na.rm = TRUE),
+        y_fit_lower = mean(y_fit_lower, na.rm = TRUE)
+      ) |>
+      ungroup() |>
+      arrange(date) |>
       collect()
   })
 
@@ -444,6 +519,7 @@ server <- function(input, output, session) {
 
   output$net_in <- renderVchart({
     tmp <- aih_data()
+    mod_receiv <- mod_receiv()
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
@@ -455,8 +531,15 @@ server <- function(input, output, session) {
       arrange(dt_inter) |>
       pad_by_time(dt_inter, .pad_value = 0) |>
       vchart() |>
+      v_area(
+        data = mod_receiv,
+        aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
+        area = list(
+          style = list(fill = "firebrick", fill_opacity = 0.9)
+        )
+      ) |>
       v_line(aes(x = dt_inter, y = freq)) |>
-      v_smooth(aes(x = dt_inter, y = freq)) |>
+      # v_smooth(aes(x = dt_inter, y = freq)) |>
       v_mark_vline(
         x = as.Date(input$date_even),
         .label.text = "Evento"
@@ -467,6 +550,7 @@ server <- function(input, output, session) {
 
   output$net_out <- renderVchart({
     tmp <- aih_data()
+    mod_sent <- mod_sent()
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
@@ -478,8 +562,15 @@ server <- function(input, output, session) {
       arrange(dt_inter) |>
       pad_by_time(dt_inter, .pad_value = 0) |>
       vchart() |>
+      v_area(
+        data = mod_sent,
+        aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
+        area = list(
+          style = list(fill = "firebrick", fill_opacity = 0.9)
+        )
+      ) |>
       v_line(aes(x = dt_inter, y = freq)) |>
-      v_smooth(aes(x = dt_inter, y = freq)) |>
+      # v_smooth(aes(x = dt_inter, y = freq)) |>
       v_mark_vline(
         x = as.Date(input$date_even),
         .label.text = "Evento"
