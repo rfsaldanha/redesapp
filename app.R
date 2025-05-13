@@ -23,6 +23,19 @@ con <- dbConnect(
   read_only = TRUE
 )
 
+# Database tables
+tb_aih <- tbl(con, "aih")
+tb_local_diario <- tbl(con, "mod_munic_diario")
+tb_local_semana <- tbl(con, "mod_munic_semana")
+tb_local_mes <- tbl(con, "mod_munic_mes")
+tb_recebidos_diario <- tbl(con, "mod_recebidos")
+tb_recebidos_semana <- tbl(con, "mod_recebidos_semana")
+tb_recebidos_mes <- tbl(con, "mod_recebidos_mes")
+tb_enviados_diario <- tbl(con, "mod_enviados")
+tb_enviados_semana <- tbl(con, "mod_enviados_semana")
+tb_enviados_mes <- tbl(con, "mod_enviados_mes")
+
+
 # Read events data
 events <- readRDS("../inova_redes/events.rds")
 
