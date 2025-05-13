@@ -421,7 +421,16 @@ server <- function(input, output, session) {
     date_even_2 <- as.Date(input$date_even) + input$horizon
 
     # Query table about municipality and dates
-    query <- tbl(con, "mod_enviados") |>
+    if (input$time_unit == "day") {
+      query <- tb_enviados_diario
+    } else if (input$time_unit == "week") {
+      query <- tb_enviados_semana
+    } else if (input$time_unit == "month") {
+      query <- tb_enviados_mes
+    }
+
+    # Filter dates
+    query <- query |>
       filter(cod6 == input$mun) |>
       filter(date >= date_even_1 & date <= date_even_2)
 
@@ -458,7 +467,16 @@ server <- function(input, output, session) {
     date_even_2 <- as.Date(input$date_even) + input$horizon
 
     # Query table about municipality and dates
-    query <- tbl(con, "mod_recebidos") |>
+    if (input$time_unit == "day") {
+      query <- tb_recebidos_diario
+    } else if (input$time_unit == "week") {
+      query <- tb_recebidos_semana
+    } else if (input$time_unit == "month") {
+      query <- tb_recebidos_mes
+    }
+
+    # Filter dates
+    query <- query |>
       filter(cod6 == input$mun) |>
       filter(date >= date_even_1 & date <= date_even_2)
 
