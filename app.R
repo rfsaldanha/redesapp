@@ -68,7 +68,12 @@ proc <- readRDS("data/proc.rds")
 # Interface
 ui <- page_navbar(
   title = "EERAS Brasil",
-  theme = bs_theme(bootswatch = "shiny"),
+  theme = bs_theme() |>
+    bs_add_rules(
+      list(
+        sass::sass_file("www/style.scss")
+      )
+    ),
 
   # Logo
   tags$head(
@@ -511,15 +516,55 @@ server <- function(input, output, session) {
     uf <- substr(input$mun, 0, 2)
     anos <- substr(input$date_even, 0, 4)
     evento <- glue("{input$mun}{input$date_even}")
-    tipo <- ifelse(
-      test = input$proc_group == "Todos",
-      yes = "",
-      no = input$proc_group
-    )
+
+    tipo <- NA
+    if (
+      input$proc_group ==
+        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
+    ) {
+      tipo <- "1"
+    } else if (
+      input$proc_group == "Adulto- Internação Clínica (Todos, 15 a 64)"
+    ) {
+      tipo <- "2"
+    } else if (input$proc_group == "Idoso - Internação Cirúrgica (65 a mais)") {
+      tipo <- "3"
+    } else if (input$proc_group == "Idoso - Internação Clínica (65 a mais)") {
+      tipo <- "4"
+    } else if (
+      input$proc_group == "Internação ginecológica clínica ou cirúrgica"
+    ) {
+      tipo <- "5"
+    } else if (
+      input$proc_group ==
+        "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)"
+    ) {
+      tipo <- "6"
+    } else if (
+      input$proc_group ==
+        "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)"
+    ) {
+      tipo <- "7"
+    } else if (
+      input$proc_group ==
+        "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)"
+    ) {
+      tipo <- "8"
+    } else if (input$proc_group == "Pediatria - Internação clínica") {
+      tipo <- "9"
+    } else if (input$proc_group == "Pediatria- Internação cirúrgica") {
+      tipo <- "10"
+    } else if (
+      input$proc_group ==
+        "Trauma- Internação Clínica ou Cirúrgica em todas as idades"
+    ) {
+      tipo <- "11"
+    }
+
     horizon <- input$horizon
 
     iframe_url <- glue(
-      "http://157.86.68.104/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}"
+      "https://homologacao-mapas.icict.fiocruz.br/inova/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}"
     )
 
     print(iframe_url)
@@ -531,7 +576,7 @@ server <- function(input, output, session) {
   output$net_local <- renderVchart({
     mod_local <- mod_local()
 
-    print(head(mod_local))
+    print(mod_local, n = 100)
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
@@ -553,6 +598,11 @@ server <- function(input, output, session) {
         ) |>
         v_scale_x_date(min = min_date, max = max_date) |>
         v_scale_y_continuous(min = 0)
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
     }
   })
 
@@ -579,6 +629,11 @@ server <- function(input, output, session) {
         ) |>
         v_scale_x_date(min = min_date, max = max_date) |>
         v_scale_y_continuous(min = 0)
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
     }
   })
 
@@ -605,82 +660,123 @@ server <- function(input, output, session) {
         ) |>
         v_scale_x_date(min = min_date, max = max_date) |>
         v_scale_y_continuous(min = 0)
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
     }
   })
 
   # Render sankeys
   output$sankey_out_1 <- renderVchart({
+    aih_data <- aih_data()
+
     # Sent to others, before
-    aih_data() |>
-      filter(munic_res != munic__mov) |>
-      filter(munic_res == input$mun & munic__mov != input$mun) |>
-      filter(dt_inter < input$date_even) |>
-      group_by(munic_res, munic__mov) |>
-      summarise(freq = sum(freq, na.rm = TRUE)) |>
-      ungroup() |>
-      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
-      select(-munic_res) |>
-      rename(munic_res = name_muni) |>
-      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
-      select(-munic__mov) |>
-      rename(munic__mov = name_muni) |>
-      vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))
+    if (nrow(aih_data) > 0) {
+      aih_data |>
+        filter(munic_res != munic__mov) |>
+        filter(munic_res == input$mun & munic__mov != input$mun) |>
+        filter(dt_inter < input$date_even) |>
+        group_by(munic_res, munic__mov) |>
+        summarise(freq = sum(freq, na.rm = TRUE)) |>
+        ungroup() |>
+        left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+        select(-munic_res) |>
+        rename(munic_res = name_muni) |>
+        left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+        select(-munic__mov) |>
+        rename(munic__mov = name_muni) |>
+        vchart() |>
+        v_sankey(aes(munic__mov, munic_res, value = freq))
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
+    }
   })
 
   output$sankey_out_2 <- renderVchart({
-    aih_data() |>
-      filter(munic_res != munic__mov) |>
-      filter(munic_res == input$mun & munic__mov != input$mun) |>
-      filter(dt_inter >= input$date_even) |>
-      group_by(munic_res, munic__mov) |>
-      summarise(freq = sum(freq, na.rm = TRUE)) |>
-      ungroup() |>
-      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
-      select(-munic_res) |>
-      rename(munic_res = name_muni) |>
-      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
-      select(-munic__mov) |>
-      rename(munic__mov = name_muni) |>
-      vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))
+    aih_data <- aih_data()
+
+    if (nrow(aih_data) > 0) {
+      aih_data() |>
+        filter(munic_res != munic__mov) |>
+        filter(munic_res == input$mun & munic__mov != input$mun) |>
+        filter(dt_inter >= input$date_even) |>
+        group_by(munic_res, munic__mov) |>
+        summarise(freq = sum(freq, na.rm = TRUE)) |>
+        ungroup() |>
+        left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+        select(-munic_res) |>
+        rename(munic_res = name_muni) |>
+        left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+        select(-munic__mov) |>
+        rename(munic__mov = name_muni) |>
+        vchart() |>
+        v_sankey(aes(munic__mov, munic_res, value = freq))
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
+    }
   })
 
   output$sankey_in_1 <- renderVchart({
     # Received from others, before
-    aih_data() |>
-      filter(munic_res != munic__mov) |>
-      filter(munic_res != input$mun & munic__mov == input$mun) |>
-      filter(dt_inter < input$date_even) |>
-      group_by(munic_res, munic__mov) |>
-      summarise(freq = sum(freq, na.rm = TRUE)) |>
-      ungroup() |>
-      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
-      select(-munic_res) |>
-      rename(munic_res = name_muni) |>
-      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
-      select(-munic__mov) |>
-      rename(munic__mov = name_muni) |>
-      vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))
+    aih_data <- aih_data()
+
+    if (nrow(aih_data) > 0) {
+      aih_data() |>
+        filter(munic_res != munic__mov) |>
+        filter(munic_res != input$mun & munic__mov == input$mun) |>
+        filter(dt_inter < input$date_even) |>
+        group_by(munic_res, munic__mov) |>
+        summarise(freq = sum(freq, na.rm = TRUE)) |>
+        ungroup() |>
+        left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+        select(-munic_res) |>
+        rename(munic_res = name_muni) |>
+        left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+        select(-munic__mov) |>
+        rename(munic__mov = name_muni) |>
+        vchart() |>
+        v_sankey(aes(munic__mov, munic_res, value = freq))
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
+    }
   })
 
   output$sankey_in_2 <- renderVchart({
-    aih_data() |>
-      filter(munic_res != munic__mov) |>
-      filter(munic_res != input$mun & munic__mov == input$mun) |>
-      filter(dt_inter >= input$date_even) |>
-      group_by(munic_res, munic__mov) |>
-      summarise(freq = sum(freq, na.rm = TRUE)) |>
-      ungroup() |>
-      left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
-      select(-munic_res) |>
-      rename(munic_res = name_muni) |>
-      left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
-      select(-munic__mov) |>
-      rename(munic__mov = name_muni) |>
-      vchart() |>
-      v_sankey(aes(munic__mov, munic_res, value = freq))
+    aih_data <- aih_data()
+
+    if (nrow(aih_data) > 0) {
+      aih_data() |>
+        filter(munic_res != munic__mov) |>
+        filter(munic_res != input$mun & munic__mov == input$mun) |>
+        filter(dt_inter >= input$date_even) |>
+        group_by(munic_res, munic__mov) |>
+        summarise(freq = sum(freq, na.rm = TRUE)) |>
+        ungroup() |>
+        left_join(ref_mun_names, by = c("munic_res" = "code_muni")) |>
+        select(-munic_res) |>
+        rename(munic_res = name_muni) |>
+        left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
+        select(-munic__mov) |>
+        rename(munic__mov = name_muni) |>
+        vchart() |>
+        v_sankey(aes(munic__mov, munic_res, value = freq))
+    } else {
+      vchart() %>%
+        v_labs(
+          title = "Sem dados suficientes para o gráfico."
+        )
+    }
   })
 
   # AIH data on health region
@@ -747,13 +843,21 @@ server <- function(input, output, session) {
       rename(munic__mov = name_muni, value = freq) |>
       select(munic_res, munic__mov, value)
 
-    i_res <- graph_from_data_frame(res)
-    v_res <- toVisNetworkData(i_res)
+    if (nrow(res) > 0) {
+      i_res <- graph_from_data_frame(res)
+      v_res <- toVisNetworkData(i_res)
 
-    visNetwork(
-      nodes = v_res$nodes,
-      edges = v_res$edges
-    )
+      visNetwork(
+        nodes = v_res$nodes,
+        edges = v_res$edges
+      )
+    } else {
+      visNetwork(
+        nodes = list(0),
+        edges = list(0),
+        main = "Sem dados suficientes para o gráfico."
+      )
+    }
   })
 
   output$graph_2 <- renderVisNetwork({
@@ -771,13 +875,21 @@ server <- function(input, output, session) {
       rename(munic__mov = name_muni, value = freq) |>
       select(munic_res, munic__mov, value)
 
-    i_res <- graph_from_data_frame(res)
-    v_res <- toVisNetworkData(i_res)
+    if (nrow(res) > 0) {
+      i_res <- graph_from_data_frame(res)
+      v_res <- toVisNetworkData(i_res)
 
-    visNetwork(
-      nodes = v_res$nodes,
-      edges = v_res$edges
-    )
+      visNetwork(
+        nodes = v_res$nodes,
+        edges = v_res$edges
+      )
+    } else {
+      visNetwork(
+        nodes = list(0),
+        edges = list(0),
+        main = "Sem dados suficientes para o gráfico."
+      )
+    }
   })
 }
 
