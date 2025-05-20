@@ -25,12 +25,15 @@ con <- dbConnect(
 
 # Database tables
 tb_aih <- tbl(con, "aih")
+
 tb_local_diario <- tbl(con, "mod_munic_diario")
 tb_local_semana <- tbl(con, "mod_munic_semana")
 tb_local_mes <- tbl(con, "mod_munic_mes")
+
 tb_recebidos_diario <- tbl(con, "mod_recebidos")
 tb_recebidos_semana <- tbl(con, "mod_recebidos_semana")
 tb_recebidos_mes <- tbl(con, "mod_recebidos_mes")
+
 tb_enviados_diario <- tbl(con, "mod_enviados")
 tb_enviados_semana <- tbl(con, "mod_enviados_semana")
 tb_enviados_mes <- tbl(con, "mod_enviados_mes")
@@ -143,7 +146,19 @@ ui <- page_navbar(
     selectizeInput(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
-      choices = NULL
+      choices = c(
+        "Trauma- Internação Clínica ou Cirúrgica em todas as idades",
+        "Idoso - Internação Cirúrgica (65 a mais)",
+        "Idoso - Internação Clínica (65 a mais)",
+        "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)",
+        "Pediatria - Internação clínica",
+        "Internação ginecológica clínica ou cirúrgica",
+        "Adulto- Internação Clínica (Todos, 15 a 64)",
+        "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)",
+        "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)",
+        "Pediatria- Internação cirúrgica",
+        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
+      )
     ),
 
     # Select unit
@@ -334,42 +349,6 @@ server <- function(input, output, session) {
     )
   })
 
-  # Procedures available on selection
-  proc_avail <- reactive({
-    req(input$mun)
-    req(input$date_even)
-    req(input$horizon)
-
-    date_even_1 <- as.Date(input$date_even) - input$horizon
-    date_even_2 <- as.Date(input$date_even) + input$horizon
-
-    proc_vct <- tbl(con, "aih") |>
-      filter(munic_res == input$mun | munic__mov == input$mun) |>
-      filter(dt_inter >= date_even_1 & dt_inter <= date_even_2) |>
-      select(proc_rea) |>
-      distinct(proc_rea) |>
-      collect() |>
-      pull(proc_rea)
-
-    proc |>
-      filter(cod %in% proc_vct)
-  })
-
-  # Update procedure selectors
-  observe({
-    proc_groups <- proc_avail() |>
-      select(grupo) |>
-      distinct(grupo) |>
-      pull(grupo)
-
-    updateSelectizeInput(
-      session = session,
-      inputId = "proc_group",
-      server = FALSE,
-      choices = c("Todos", proc_groups)
-    )
-  })
-
   # AIH data
   aih_data <- reactive({
     req(input$mun)
@@ -401,11 +380,49 @@ server <- function(input, output, session) {
     query <- query |>
       mutate(dt_inter = floor_date(dt_inter, unit = input$time_unit))
 
+    # Collect and return
     query |>
       group_by(dt_inter, munic_res, munic__mov) |>
       summarise(freq = n()) |>
       ungroup() |>
       arrange(dt_inter, munic_res, munic__mov) |>
+      collect()
+  })
+
+  # Model local cases
+  mod_local <- reactive({
+    req(input$mun)
+    req(input$date_even)
+    req(input$proc_group)
+    req(input$horizon)
+
+    # Reference dates around event date
+    date_even_1 <- as.Date(input$date_even) - input$horizon
+    date_even_2 <- as.Date(input$date_even) + input$horizon
+
+    # Query table about municipality and dates
+    if (input$time_unit == "day") {
+      query <- tb_local_diario
+    } else if (input$time_unit == "week") {
+      query <- tb_local_semana
+    } else if (input$time_unit == "month") {
+      query <- tb_local_mes
+    }
+
+    # Filter dates
+    query <- query |>
+      filter(cod6 == input$mun) |>
+      filter(date >= date_even_1 & date <= date_even_2)
+
+    # Filter procedure
+    if (input$proc_group != "Todos") {
+      query <- query |>
+        filter(tipo == input$proc_group)
+    }
+
+    # Collect and return
+    query |>
+      arrange(date) |>
       collect()
   })
 
@@ -440,17 +457,8 @@ server <- function(input, output, session) {
         filter(tipo == input$proc_group)
     }
 
-    # Modify dates to aggregate
-    query <- query |>
-      mutate(date = floor_date(date, unit = input$time_unit))
-
+    # Collect and return
     query |>
-      group_by(date) |>
-      summarise(
-        y_fit_upper = mean(y_fit_upper, na.rm = TRUE),
-        y_fit_lower = mean(y_fit_lower, na.rm = TRUE)
-      ) |>
-      ungroup() |>
       arrange(date) |>
       collect()
   })
@@ -475,7 +483,7 @@ server <- function(input, output, session) {
       query <- tb_recebidos_mes
     }
 
-    # Filter dates
+    # Filter
     query <- query |>
       filter(cod6 == input$mun) |>
       filter(date >= date_even_1 & date <= date_even_2)
@@ -486,17 +494,8 @@ server <- function(input, output, session) {
         filter(tipo == input$proc_group)
     }
 
-    # Modify dates to aggregate
-    query <- query |>
-      mutate(date = floor_date(date, unit = input$time_unit))
-
+    # Collect and return
     query |>
-      group_by(date) |>
-      summarise(
-        y_fit_upper = mean(y_fit_upper, na.rm = TRUE),
-        y_fit_lower = mean(y_fit_lower, na.rm = TRUE)
-      ) |>
-      ungroup() |>
       arrange(date) |>
       collect()
   })
@@ -520,94 +519,93 @@ server <- function(input, output, session) {
     horizon <- input$horizon
 
     iframe_url <- glue(
-      "http://157.86.68.234/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}"
+      "http://157.86.68.104/inova/fluxo/sincro2.php?uf={uf}&anos={anos}&evento={evento}&tipo={tipo}&horizon={horizon}"
     )
+
+    print(iframe_url)
 
     tags$iframe(src = iframe_url, width = "100%", height = "800px")
   })
 
+  # Time series graphs
   output$net_local <- renderVchart({
-    tmp <- aih_data()
+    mod_local <- mod_local()
+
+    print(head(mod_local))
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
 
-    tmp |>
-      filter(munic_res == munic__mov) |>
-      summarise(freq = sum(freq), .by = dt_inter) |>
-      arrange(dt_inter) |>
-      pad_by_time(dt_inter, .pad_value = 0) |>
-      vchart() |>
-      v_line(aes(x = dt_inter, y = freq)) |>
-      v_smooth(aes(x = dt_inter, y = freq)) |>
-      v_mark_vline(
-        x = as.Date(input$date_even),
-        .label.text = "Evento"
-      ) |>
-      v_scale_x_date(min = min_date, max = max_date) |>
-      v_scale_y_continuous(min = 0)
+    if (nrow(mod_local) > 0) {
+      mod_local |>
+        pad_by_time(date, .pad_value = 0) |>
+        vchart() |>
+        v_area(
+          aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
+          area = list(
+            style = list(fill = "firebrick", fill_opacity = 0.9)
+          )
+        ) |>
+        v_line(aes(x = date, y = casos)) |>
+        v_mark_vline(
+          x = as.Date(input$date_even),
+          .label.text = "Evento"
+        ) |>
+        v_scale_x_date(min = min_date, max = max_date) |>
+        v_scale_y_continuous(min = 0)
+    }
   })
 
   output$net_in <- renderVchart({
-    tmp <- aih_data()
     mod_receiv <- mod_receiv()
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
 
-    tmp |>
-      filter(munic_res != input$mun) |>
-      filter(!munic_res == munic__mov) |>
-      summarise(freq = sum(freq), .by = dt_inter) |>
-      arrange(dt_inter) |>
-      pad_by_time(dt_inter, .pad_value = 0) |>
-      vchart() |>
-      v_area(
-        data = mod_receiv,
-        aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
-        area = list(
-          style = list(fill = "firebrick", fill_opacity = 0.9)
-        )
-      ) |>
-      v_line(aes(x = dt_inter, y = freq)) |>
-      # v_smooth(aes(x = dt_inter, y = freq)) |>
-      v_mark_vline(
-        x = as.Date(input$date_even),
-        .label.text = "Evento"
-      ) |>
-      v_scale_x_date(min = min_date, max = max_date) |>
-      v_scale_y_continuous(min = 0)
+    if (nrow(mod_receiv) > 0) {
+      mod_receiv |>
+        pad_by_time(date, .pad_value = 0) |>
+        vchart() |>
+        v_area(
+          aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
+          area = list(
+            style = list(fill = "firebrick", fill_opacity = 0.9)
+          )
+        ) |>
+        v_line(aes(x = date, y = casos)) |>
+        v_mark_vline(
+          x = as.Date(input$date_even),
+          .label.text = "Evento"
+        ) |>
+        v_scale_x_date(min = min_date, max = max_date) |>
+        v_scale_y_continuous(min = 0)
+    }
   })
 
   output$net_out <- renderVchart({
-    tmp <- aih_data()
     mod_sent <- mod_sent()
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
 
-    tmp |>
-      filter(munic_res == input$mun) |>
-      filter(!munic_res == munic__mov) |>
-      summarise(freq = sum(freq), .by = dt_inter) |>
-      arrange(dt_inter) |>
-      pad_by_time(dt_inter, .pad_value = 0) |>
-      vchart() |>
-      v_area(
-        data = mod_sent,
-        aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
-        area = list(
-          style = list(fill = "firebrick", fill_opacity = 0.9)
-        )
-      ) |>
-      v_line(aes(x = dt_inter, y = freq)) |>
-      # v_smooth(aes(x = dt_inter, y = freq)) |>
-      v_mark_vline(
-        x = as.Date(input$date_even),
-        .label.text = "Evento"
-      ) |>
-      v_scale_x_date(min = min_date, max = max_date) |>
-      v_scale_y_continuous(min = 0)
+    if (nrow(mod_sent) > 0) {
+      mod_sent |>
+        pad_by_time(date, .pad_value = 0) |>
+        vchart() |>
+        v_area(
+          aes(x = date, ymin = y_fit_lower, ymax = y_fit_upper),
+          area = list(
+            style = list(fill = "firebrick", fill_opacity = 0.9)
+          )
+        ) |>
+        v_line(aes(x = date, y = casos)) |>
+        v_mark_vline(
+          x = as.Date(input$date_even),
+          .label.text = "Evento"
+        ) |>
+        v_scale_x_date(min = min_date, max = max_date) |>
+        v_scale_y_continuous(min = 0)
+    }
   })
 
   # Render sankeys
