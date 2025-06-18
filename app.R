@@ -2,6 +2,7 @@
 library(shiny)
 library(bslib)
 library(dplyr)
+library(readr)
 library(lubridate)
 library(timetk)
 library(tidyr)
@@ -19,7 +20,7 @@ library(glue)
 # Connect to AIH database
 con <- dbConnect(
   duckdb(),
-  dbdir = "../inova_redes/aih.duckdb",
+  dbdir = "data/aih.duckdb",
   read_only = TRUE
 )
 
@@ -40,7 +41,7 @@ tb_enviados_mes <- tbl(con, "mod_enviados_mes")
 
 
 # Read events data
-events <- readRDS("../inova_redes/events.rds")
+events <- readRDS("data/events.rds")
 
 # Read municipality seats data
 mun_seats <- readRDS("data/mun_seats.rds") |>
@@ -63,11 +64,12 @@ time_unit_list <- c("day", "week", "month")
 names(time_unit_list) <- c("Dia", "Semana", "Mês")
 
 # Read procedures table
-proc <- readRDS("data/proc.rds")
+# proc <- readRDS("data/proc.rds")
+proc <- read_csv2(file = "data/proc.csv")
 
 # Interface
 ui <- page_navbar(
-  title = "EERAS Brasil",
+  title = "FluxSUS",
   theme = bs_theme() |>
     bs_add_rules(
       list(
@@ -152,17 +154,18 @@ ui <- page_navbar(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
       choices = c(
-        "Trauma- Internação Clínica ou Cirúrgica em todas as idades",
-        "Idoso - Internação Cirúrgica (65 a mais)",
-        "Idoso - Internação Clínica (65 a mais)",
-        "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)",
-        "Pediatria - Internação clínica",
-        "Internação ginecológica clínica ou cirúrgica",
-        "Adulto- Internação Clínica (Todos, 15 a 64)",
-        "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)",
-        "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)",
-        "Pediatria- Internação cirúrgica",
-        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
+        "Trauma- Internação Clínica ou Cirúrgica em todas as idades" = "1",
+        "Idoso - Internação Cirúrgica (65 a mais)" = "2",
+        "Idoso - Internação Clínica (65 a mais)" = "3",
+        "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)" = "4",
+        "Pediatria - Internação clínica" = "5",
+        "Internação ginecológica clínica ou cirúrgica" = "6",
+        "Adulto- Internação Clínica (Todos, 15 a 64)" = "7",
+        "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)" = "8",
+        "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)" = "9",
+        "Pediatria- Internação cirúrgica" = "10",
+        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)" = "11",
+        "Todos" = "12"
       )
     ),
 
@@ -272,21 +275,38 @@ ui <- page_navbar(
   nav_panel(
     title = "Sobre o projeto",
     card(
-      card_header("Card title"),
-      p("Bla bla bla.")
+      card_header("FluxSUS"),
+      p("Texto")
+    ),
+    card(
+      card_header("Classificação de desastres"),
+      p(
+        "Este projeto segue a Classificação e Codificação Brasileira de Desastres (Cobrade), resumida a seguir:"
+      ),
+      p(
+        "Geológico: eventos como movimentação de massa, deslizamentos e erosão entre outros"
+      ),
+      p(
+        "Hidrológico: eventos como inundações, enxurradas e alagamentos entre outros"
+      ),
+      p(
+        "Meteorológico: eventos como tempestades e temperaturas extremas entre outros"
+      ),
+      p(
+        "Climatológico: eventos como seca, estiagem e baixa humidade do ar entre outros"
+      ),
+      p(
+        "Os eventos biológicos e tecnológicos não são cobertos por este projeto."
+      )
     ),
     accordion(
       multiple = FALSE,
       accordion_panel(
-        "Título A",
+        "Financiamento",
         p("Bla bla bla.")
       ),
       accordion_panel(
-        "Título B",
-        p("Bla bla bla.")
-      ),
-      accordion_panel(
-        "Título C",
+        "Contato",
         p("Bla bla bla.")
       )
     )
@@ -322,6 +342,7 @@ server <- function(input, output, session) {
     categ <- events |>
       filter(code_muni == input$mun) |>
       select(categoria) |>
+      filter(!(categoria %in% c("Biológicos", "Tecnológicos"))) |>
       distinct(categoria) |>
       arrange(categoria) |>
       pull(categoria)
@@ -371,9 +392,9 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "Todos") {
+    if (input$proc_group != "12") {
       proc_vct <- proc |>
-        filter(grupo == input$proc_group) |>
+        filter(cod_grupo == input$proc_group) |>
         select(cod) |>
         pull(cod)
 
@@ -517,49 +538,51 @@ server <- function(input, output, session) {
     anos <- substr(input$date_even, 0, 4)
     evento <- glue("{input$mun}{input$date_even}")
 
-    tipo <- NA
-    if (
-      input$proc_group ==
-        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
-    ) {
-      tipo <- "1"
-    } else if (
-      input$proc_group == "Adulto- Internação Clínica (Todos, 15 a 64)"
-    ) {
-      tipo <- "2"
-    } else if (input$proc_group == "Idoso - Internação Cirúrgica (65 a mais)") {
-      tipo <- "3"
-    } else if (input$proc_group == "Idoso - Internação Clínica (65 a mais)") {
-      tipo <- "4"
-    } else if (
-      input$proc_group == "Internação ginecológica clínica ou cirúrgica"
-    ) {
-      tipo <- "5"
-    } else if (
-      input$proc_group ==
-        "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)"
-    ) {
-      tipo <- "6"
-    } else if (
-      input$proc_group ==
-        "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)"
-    ) {
-      tipo <- "7"
-    } else if (
-      input$proc_group ==
-        "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)"
-    ) {
-      tipo <- "8"
-    } else if (input$proc_group == "Pediatria - Internação clínica") {
-      tipo <- "9"
-    } else if (input$proc_group == "Pediatria- Internação cirúrgica") {
-      tipo <- "10"
-    } else if (
-      input$proc_group ==
-        "Trauma- Internação Clínica ou Cirúrgica em todas as idades"
-    ) {
-      tipo <- "11"
-    }
+    # tipo <- NA
+    # if (
+    #   input$proc_group ==
+    #     "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
+    # ) {
+    #   tipo <- "1"
+    # } else if (
+    #   input$proc_group == "Adulto- Internação Clínica (Todos, 15 a 64)"
+    # ) {
+    #   tipo <- "2"
+    # } else if (input$proc_group == "Idoso - Internação Cirúrgica (65 a mais)") {
+    #   tipo <- "3"
+    # } else if (input$proc_group == "Idoso - Internação Clínica (65 a mais)") {
+    #   tipo <- "4"
+    # } else if (
+    #   input$proc_group == "Internação ginecológica clínica ou cirúrgica"
+    # ) {
+    #   tipo <- "5"
+    # } else if (
+    #   input$proc_group ==
+    #     "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)"
+    # ) {
+    #   tipo <- "6"
+    # } else if (
+    #   input$proc_group ==
+    #     "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)"
+    # ) {
+    #   tipo <- "7"
+    # } else if (
+    #   input$proc_group ==
+    #     "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)"
+    # ) {
+    #   tipo <- "8"
+    # } else if (input$proc_group == "Pediatria - Internação clínica") {
+    #   tipo <- "9"
+    # } else if (input$proc_group == "Pediatria- Internação cirúrgica") {
+    #   tipo <- "10"
+    # } else if (
+    #   input$proc_group ==
+    #     "Trauma- Internação Clínica ou Cirúrgica em todas as idades"
+    # ) {
+    #   tipo <- "11"
+    # }
+
+    tipo <- input$proc_group
 
     horizon <- input$horizon
 
@@ -576,7 +599,7 @@ server <- function(input, output, session) {
   output$net_local <- renderVchart({
     mod_local <- mod_local()
 
-    print(mod_local, n = 100)
+    # print(mod_local, n = 100)
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
@@ -671,6 +694,8 @@ server <- function(input, output, session) {
   # Render sankeys
   output$sankey_out_1 <- renderVchart({
     aih_data <- aih_data()
+
+    print(aih_data)
 
     # Sent to others, before
     if (nrow(aih_data) > 0) {
@@ -806,9 +831,9 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "Todos") {
+    if (input$proc_group != "12") {
       proc_vct <- proc |>
-        filter(grupo == input$proc_group) |>
+        filter(cod_grupo == input$proc_group) |>
         select(cod) |>
         pull(cod)
 

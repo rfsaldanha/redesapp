@@ -1,0 +1,129 @@
+cod_grupo;grupo;cod;nome
+10;Pediatria - Internação cirúrgica;404010032;amigdalectomia c/ adenoidectomia
+10;Pediatria - Internação cirúrgica;409050083;postectomia
+10;Pediatria - Internação cirúrgica;407020039;apendicectomia
+10;Pediatria - Internação cirúrgica;407040102;hernioplastia inguinal / crural (unilateral)
+10;Pediatria - Internação cirúrgica;407040129;hernioplastia umbilical
+10;Pediatria - Internação cirúrgica;404010016;adenoidectomia
+10;Pediatria - Internação cirúrgica;401020100;extirpação e supressão de lesão de pele e de tecido celular subcutâneo
+10;Pediatria - Internação cirúrgica;409040134;orquidopexia unilateral
+10;Pediatria - Internação cirúrgica;407040099;hernioplastia inguinal (bilateral)
+10;Pediatria - Internação cirúrgica;415040035;debridamento de ulcera / de tecidos desvitalizados
+10;Pediatria - Internação cirúrgica;413040178;tratamento cirúrgico de lesões extensas c/ perda de substancia cutânea
+10;Pediatria - Internação cirúrgica;403010101;derivação ventricular para peritônio / átrio / pleura / raque
+10;Pediatria - Internação cirúrgica;407040161;laparotomia exploradora
+10;Pediatria - Internação cirúrgica;413010082;tratamento de médio queimado
+10;Pediatria - Internação cirúrgica;412040166;toracotomia com drenagem pleural fechada
+10;Pediatria - Internação cirúrgica;401020045;excisão e enxerto de pele (hemangioma, nevus ou tumor)
+10;Pediatria - Internação cirúrgica;401020053;excisão e sutura de lesão na pele c/ plástica em z ou rotação de retalho
+10;Pediatria - Internação cirúrgica;407040064;hernioplastia epigástrica
+10;Pediatria - Internação cirúrgica;409050032;correção de hipospadia (1o tempo)
+10;Pediatria - Internação cirúrgica;415040027;debridamento de fasceite necrotizante
+5;Internação ginecológica clínica ou cirúrgica;303150033;tratamento de doenças inflamatórias dos órgãos pélvicos femininos
+5;Internação ginecológica clínica ou cirúrgica;409060135;histerectomia total
+5;Internação ginecológica clínica ou cirúrgica;409060186;laqueadura tubária
+5;Internação ginecológica clínica ou cirúrgica;409060119;histerectomia c/ anexectomia (uni / bilateral)
+5;Internação ginecológica clínica ou cirúrgica;409060046;curetagem semiótica c/ ou s/ dilatação do colo do útero
+5;Internação ginecológica clínica ou cirúrgica;409060216;ooforectomia / ooforoplastia
+7;Internação Obstétrica para Parto Normal (mulheres de 15 a 49);310010039;parto normal
+7;Internação Obstétrica para Parto Normal (mulheres de 15 a 49);310010047;parto normal em gestação de alto risco
+6;Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49);411010034;parto cesariano
+6;Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49);411010026;parto cesariano em gestação alto risco
+6;Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49);411010042;parto cesariano c/ laqueadura tubária
+8;Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49);411020013;curetagem pós-abortamento / puerperal
+2;Adulto - Internação Clínica (Todos, 15 a 64);303140151;tratamento de pneumonias ou influenza (gripe)
+2;Adulto - Internação Clínica (Todos, 15 a 64);303010061;tratamento de doenças infecciosas e intestinais
+2;Adulto - Internação Clínica (Todos, 15 a 64);303060212;tratamento de insuficiência cardíaca
+2;Adulto - Internação Clínica (Todos, 15 a 64);303140046;tratamento das doenças crônicas das vias aéreas inferiores
+2;Adulto - Internação Clínica (Todos, 15 a 64);305020013;tratamento da pielonefrite
+2;Adulto - Internação Clínica (Todos, 15 a 64);303150050;tratamento de outras doenças do aparelho urinário
+2;Adulto - Internação Clínica (Todos, 15 a 64);303040149;tratamento de acidente vascular cerebral - AVC (isquêmico ou hemorrágico agudo)
+2;Adulto - Internação Clínica (Todos, 15 a 64);303030038;tratamento de diabetes mellitus
+2;Adulto - Internação Clínica (Todos, 15 a 64);303060107;tratamento de crise hipertensiva
+2;Adulto - Internação Clínica (Todos, 15 a 64);303070064;tratamento de doenças do esôfago estômago e duodeno
+2;Adulto - Internação Clínica (Todos, 15 a 64);303070129;tratamento de transtornos das vias biliares e pâncreas
+2;Adulto - Internação Clínica (Todos, 15 a 64);304100013;tratamento de intercorrências clínicas de paciente ontológico
+2;Adulto - Internação Clínica (Todos, 15 a 64);303070102;tratamento de outras doenças do aparelho digestivo
+2;Adulto - Internação Clínica (Todos, 15 a 64);303010010;tratamento de dengue clássica
+2;Adulto - Internação Clínica (Todos, 15 a 64);303080078;tratamento de estreptocócicas
+2;Adulto - Internação Clínica (Todos, 15 a 64);303060280;tratamento de síndrome coronariana aguda
+2;Adulto - Internação Clínica (Todos, 15 a 64);303070072;tratamento de doenças do fígado
+2;Adulto - Internação Clínica (Todos, 15 a 64);304100021;tratamento clínico de paciente ontológico
+2;Adulto - Internação Clínica (Todos, 15 a 64);303080060;tratamento de estafilococcias
+2;Adulto - Internação Clínica (Todos, 15 a 64);305020021;tratamento de calculose renal
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407030026;colecistectomia
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407040102;hernioplastia inguinal / crural (unilateral)
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407020039;apendicectomia
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);406020566;tratamento cirúrgico de varizes (bilateral)
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);415040035;debridamento de ulcera / de tecidos desvitalizados
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407040129;hernioplastia umbilical
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407040161;laparotomia exploradora
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407030034;colecistectomia videolaparoscópica
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407020284;hemorroidectomia
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);409040240;vasectomia
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);406020574;tratamento cirúrgico de varizes (unilateral)
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);412040166;toracostomia com drenagem pleural fechada
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);401020053;excisão e sutura de lesão na pele c/ plástica em z ou rotação de retalho
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);401020100;extirpação e supressão de lesão de pele e de tecido celular subcutâneo
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407040080;hernioplastia incisional
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407040064;hernioplastia epigástrica
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);415040027;debridamento de fasceite necrotizante
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);409050083;postectomia
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);407020276;fistulectomia / fistulotomia anal
+1;Adulto - Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64);401020045;excisão e enxerto de pele (hemangioma, nevus ou tumor)
+4;Idoso - Internação Clínica (65 a mais);303140151;tratamento de pneumonias ou influenza (gripe)
+4;Idoso - Internação Clínica (65 a mais);303060212;tratamento de insuficiência cardíaca
+4;Idoso - Internação Clínica (65 a mais);303040149;tratamento de acidente vascular cerebral - AVC (isquêmico ou hemorrágico agudo)
+4;Idoso - Internação Clínica (65 a mais);303140046;tratamento das doenças crônicas das vias aéreas inferiores
+4;Idoso - Internação Clínica (65 a mais);303010061;tratamento de doenças infecciosas e intestinais
+4;Idoso - Internação Clínica (65 a mais);303030038;tratamento de diabetes mellitus
+4;Idoso - Internação Clínica (65 a mais);303060107;tratamento de crise hipertensiva
+4;Idoso - Internação Clínica (65 a mais);304100013;tratamento de intercorrências clínicas de paciente ontológico
+3;Idoso - Internação Cirúrgica (65 a mais);407040102;hernioplastia inguinal / crural (unilateral)
+3;Idoso - Internação Cirúrgica (65 a mais);407030026;colecistectomia
+3;Idoso - Internação Cirúrgica (65 a mais);415040035;debridamento de ulcera / de tecidos desvitalizados
+3;Idoso - Internação Cirúrgica (65 a mais);409030040;ressecção endoscópica de próstata
+3;Idoso - Internação Cirúrgica (65 a mais);401020053;excisão e sutura de lesão na pele c/ plástica em z ou rotação de retalho
+3;Idoso - Internação Cirúrgica (65 a mais);409030023;prostatectomia suprapúbica
+3;Idoso - Internação Cirúrgica (65 a mais);404010377;traqueostomia
+3;Idoso - Internação Cirúrgica (65 a mais);407040161;laparotomia exploradora
+3;Idoso - Internação Cirúrgica (65 a mais);413040178;tratamento cirúrgico de lesões extensas c/ perda de substancia cutânea
+3;Idoso - Internação Cirúrgica (65 a mais);412040166;toracostomia com drenagem pleural fechada
+3;Idoso - Internação Cirúrgica (65 a mais);407030034;colecistectomia videolaparoscopica
+3;Idoso - Internação Cirúrgica (65 a mais);415040027;debridamento de fasceite necrotizante
+3;Idoso - Internação Cirúrgica (65 a mais);409070050;colpoperineoplastia anterior e posterior
+3;Idoso - Internação Cirúrgica (65 a mais);407040080;hernioplastia incisional
+3;Idoso - Internação Cirúrgica (65 a mais);401020100;extirpação e supressão de lesão de pele e de tecido celular subcutâneo
+3;Idoso - Internação Cirúrgica (65 a mais);407040129;hernioplastia umbilical
+3;Idoso - Internação Cirúrgica (65 a mais);406020566;tratamento cirúrgico de varizes (bilateral)
+3;Idoso - Internação Cirúrgica (65 a mais);407040099;hernioplastia inguinal (bilateral)
+3;Idoso - Internação Cirúrgica (65 a mais);409020176;uretrotomia interna
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;303040084;tratamento conservador de traumatismo cranioencefálico (grau leve)
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;303040092;tratamento conservador de traumatismo cranioencefalico (grau médio)
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;308020030;tratamento de intoxicação ou envenenamento por exposição a medicamento e substancias de uso não medi
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;308020022;tratamento de efeitos do contato c/ animais e plantas venenosos
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;303040106;tratamento conservador de traumatismo cranioencefalico grave
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;308010043;tratamento de traumatismos envolvendo múltiplas regiões do corpo
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;303040114;tratamento conservador de traumatismo raquimedular
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;303130016;atendimento a paciente sob cuidados prolongados devido a causas externas
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;308010035;tratamento de traumatismos c/ lesão de órgão intratorácico e intra-abdominal
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;415030013;tratamento cirúrgico em politraumatizado
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050500;tratamento cirúrgico de fratura da diáfise da tíbia
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020407;tratamento cirúrgico de fratura da extremidade / metáfise distal dos ossos do antebraço
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020423;tratamento cirúrgico de fratura diafisaria de ambos os ossos do antebraço (c/ síntese)
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;415010012;tratamento c/ cirurgias múltiplas
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020431;tratamento cirúrgico de fratura diafisaria única do radio / da ulna
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050519;tratamento cirúrgico de fratura da diáfise do fêmur
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050497;tratamento cirúrgico de fratura bimaleolar / trimaleolar / da fratura -luxação do tornozelo
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020202;redução incruenta de fratura diafisaria dos ossos do antebraço
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050632;tratamento cirúrgico de fratura transtrocanteriana
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050578;tratamento cirúrgico de fratura do tornozelo unimaleolar
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;413040178;tratamento cirúrgico de lesões extensas c/ perda de substancia cutânea
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020342;tratamento cirúrgico de fratura / lesão fisaria das falanges da mão (com fixação)
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020385;tratamento cirúrgico de fratura / lesão fisaria supra-condiliana do úmero
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;412040166;toracostomia com drenagem pleural fechada
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408020377;tratamento cirúrgico de fratura / lesão fisaria dos metacarpianos
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408060450;tenomiorrafia
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050551;tratamento cirúrgico de fratura do planalto tibial
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;408050489;tratamento cirúrgico de fratura / lesão fisaria proximal (colo) do fêmur (síntese)
+11;Trauma - Internação Clínica ou Cirúrgica em todas as idades;413010082;tratamento de médio queimado
