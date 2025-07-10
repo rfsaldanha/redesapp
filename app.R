@@ -154,6 +154,7 @@ ui <- page_navbar(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
       choices = c(
+        "Todos" = "12",
         "Trauma- Internação Clínica ou Cirúrgica em todas as idades" = "1",
         "Idoso - Internação Cirúrgica (65 a mais)" = "2",
         "Idoso - Internação Clínica (65 a mais)" = "3",
@@ -164,9 +165,9 @@ ui <- page_navbar(
         "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)" = "8",
         "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)" = "9",
         "Pediatria- Internação cirúrgica" = "10",
-        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)" = "11",
-        "Todos" = "12"
-      )
+        "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)" = "11"
+      ),
+      selected = "Todos"
     ),
 
     # Select unit
@@ -182,10 +183,51 @@ ui <- page_navbar(
       inputId = "horizon",
       label = "Horizonte",
       min = 30,
-      max = 390,
+      max = 180,
       step = 30,
       value = 90
     ),
+  ),
+
+  # Home page
+  nav_panel(
+    title = "Início",
+    card(
+      card_header("FluxSUS"),
+      p("Texto")
+    ),
+    card(
+      card_header("Classificação de desastres"),
+      p(
+        "Este projeto segue a Classificação e Codificação Brasileira de Desastres (Cobrade), resumida a seguir:"
+      ),
+      p(
+        "Geológico: eventos como movimentação de massa, deslizamentos e erosão entre outros"
+      ),
+      p(
+        "Hidrológico: eventos como inundações, enxurradas e alagamentos entre outros"
+      ),
+      p(
+        "Meteorológico: eventos como tempestades e temperaturas extremas entre outros"
+      ),
+      p(
+        "Climatológico: eventos como seca, estiagem e baixa humidade do ar entre outros"
+      ),
+      p(
+        "Os eventos biológicos e tecnológicos não são cobertos por este projeto."
+      )
+    ),
+    accordion(
+      multiple = FALSE,
+      accordion_panel(
+        "Financiamento",
+        p("Bla bla bla.")
+      ),
+      accordion_panel(
+        "Contato",
+        p("Bla bla bla.")
+      )
+    )
   ),
 
   # Time series page
@@ -217,7 +259,7 @@ ui <- page_navbar(
 
   # Sankey page
   nav_panel(
-    title = "Fluxo",
+    title = "Diagrama de fluxo",
 
     # Graphs card
     accordion(
@@ -255,7 +297,7 @@ ui <- page_navbar(
 
   # Graphs page
   nav_panel(
-    title = "Região de saúde",
+    title = "Grafo",
 
     # Graphs card
     layout_column_wrap(
@@ -267,47 +309,6 @@ ui <- page_navbar(
       card(
         card_header("Após o evento"),
         visNetworkOutput(outputId = "graph_2")
-      )
-    )
-  ),
-
-  # About page
-  nav_panel(
-    title = "Sobre o projeto",
-    card(
-      card_header("FluxSUS"),
-      p("Texto")
-    ),
-    card(
-      card_header("Classificação de desastres"),
-      p(
-        "Este projeto segue a Classificação e Codificação Brasileira de Desastres (Cobrade), resumida a seguir:"
-      ),
-      p(
-        "Geológico: eventos como movimentação de massa, deslizamentos e erosão entre outros"
-      ),
-      p(
-        "Hidrológico: eventos como inundações, enxurradas e alagamentos entre outros"
-      ),
-      p(
-        "Meteorológico: eventos como tempestades e temperaturas extremas entre outros"
-      ),
-      p(
-        "Climatológico: eventos como seca, estiagem e baixa humidade do ar entre outros"
-      ),
-      p(
-        "Os eventos biológicos e tecnológicos não são cobertos por este projeto."
-      )
-    ),
-    accordion(
-      multiple = FALSE,
-      accordion_panel(
-        "Financiamento",
-        p("Bla bla bla.")
-      ),
-      accordion_panel(
-        "Contato",
-        p("Bla bla bla.")
       )
     )
   )
@@ -449,6 +450,11 @@ server <- function(input, output, session) {
     # Collect and return
     query |>
       arrange(date) |>
+      mutate(
+        y_fit = round(y_fit, 2),
+        y_fit_upper = round(y_fit_upper, 2),
+        y_fit_lower = round(y_fit_lower, 2)
+      ) |>
       collect()
   })
 
@@ -486,6 +492,11 @@ server <- function(input, output, session) {
     # Collect and return
     query |>
       arrange(date) |>
+      mutate(
+        y_fit = round(y_fit, 2),
+        y_fit_upper = round(y_fit_upper, 2),
+        y_fit_lower = round(y_fit_lower, 2)
+      ) |>
       collect()
   })
 
@@ -523,6 +534,11 @@ server <- function(input, output, session) {
     # Collect and return
     query |>
       arrange(date) |>
+      mutate(
+        y_fit = round(y_fit, 2),
+        y_fit_upper = round(y_fit_upper, 2),
+        y_fit_lower = round(y_fit_lower, 2)
+      ) |>
       collect()
   })
 
@@ -538,51 +554,11 @@ server <- function(input, output, session) {
     anos <- substr(input$date_even, 0, 4)
     evento <- glue("{input$mun}{input$date_even}")
 
-    # tipo <- NA
-    # if (
-    #   input$proc_group ==
-    #     "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)"
-    # ) {
-    #   tipo <- "1"
-    # } else if (
-    #   input$proc_group == "Adulto- Internação Clínica (Todos, 15 a 64)"
-    # ) {
-    #   tipo <- "2"
-    # } else if (input$proc_group == "Idoso - Internação Cirúrgica (65 a mais)") {
-    #   tipo <- "3"
-    # } else if (input$proc_group == "Idoso - Internação Clínica (65 a mais)") {
-    #   tipo <- "4"
-    # } else if (
-    #   input$proc_group == "Internação ginecológica clínica ou cirúrgica"
-    # ) {
-    #   tipo <- "5"
-    # } else if (
-    #   input$proc_group ==
-    #     "Internação Obstétrica para Parto Cesariano (mulheres de 15 a 49)"
-    # ) {
-    #   tipo <- "6"
-    # } else if (
-    #   input$proc_group ==
-    #     "Internação Obstétrica para Parto Normal (mulheres de 15 a 49)"
-    # ) {
-    #   tipo <- "7"
-    # } else if (
-    #   input$proc_group ==
-    #     "Mulher - Internação Obstétrica para Curetagem pós-aborto (mulheres de 15 a 49)"
-    # ) {
-    #   tipo <- "8"
-    # } else if (input$proc_group == "Pediatria - Internação clínica") {
-    #   tipo <- "9"
-    # } else if (input$proc_group == "Pediatria- Internação cirúrgica") {
-    #   tipo <- "10"
-    # } else if (
-    #   input$proc_group ==
-    #     "Trauma- Internação Clínica ou Cirúrgica em todas as idades"
-    # ) {
-    #   tipo <- "11"
-    # }
-
     tipo <- input$proc_group
+
+    if (tipo == 12) {
+      tipo <- ""
+    }
 
     horizon <- input$horizon
 
@@ -875,7 +851,8 @@ server <- function(input, output, session) {
       visNetwork(
         nodes = v_res$nodes,
         edges = v_res$edges
-      )
+      ) |>
+        visEdges(arrows = 'to', scaling = list(min = 2, max = 2))
     } else {
       visNetwork(
         nodes = list(0),
@@ -907,7 +884,8 @@ server <- function(input, output, session) {
       visNetwork(
         nodes = v_res$nodes,
         edges = v_res$edges
-      )
+      ) |>
+        visEdges(arrows = 'to', scaling = list(min = 2, max = 2))
     } else {
       visNetwork(
         nodes = list(0),
