@@ -194,38 +194,26 @@ ui <- page_navbar(
     title = "Início",
     card(
       card_header("FluxSUS"),
-      p("Texto")
-    ),
-    card(
-      card_header("Classificação de desastres"),
+      tags$p(HTML(
+        "O FluxSUS é um sistema de informações geográficas que oferece dados, análises e visualizações sobre os impactos de desastres e eventos climáticos extremos na rede de assistência à saúde brasileira. Desenvolvido pela Fiocruz em parceria com instituições nacionais e internacionais, o sistema integra informações do Sistema de Informações Hospitalares do SUS (<a href='https://datasus.saude.gov.br/acesso-a-informacao/producao-hospitalar-sih-sus/'>SIH/SUS</a>) e do Sistema Integrado de Informações sobre Desastres (<a href='https://s2id.mi.gov.br/'>S2iD</a>) para mapear fluxos de pacientes, identificar sobrecargas no sistema de saúde e caracterizar padrões de deslocamento populacional durante emergências."
+      )),
+      tags$p(HTML(
+        "Esta plataforma foi criada para apoiar profissionais de saúde, gestores públicos e pesquisadores na tomada de decisões baseadas em evidências, no planejamento de ações de resposta a emergências e na prevenção de riscos à saúde pública. Por meio de painéis interativos, mapas geoespaciais e análises epidemiológicas, o FluxSUS permite compreender como desastres afetam o acesso aos serviços de saúde, facilitando a otimização da distribuição de recursos e o fortalecimento da capacidade de resposta do sistema de saúde em cenários de crise. Este projeto segue a Classificação e Codificação Brasileira de Desastres (<a href='https://www.gov.br/mdr/pt-br/centrais-de-conteudo/publicacoes/protecao-e-defesa-civil-sedec/DOCU_cobrade2.pdf'>Cobrade</a>), resumida a seguir:"
+      )),
       p(
-        "Este projeto segue a Classificação e Codificação Brasileira de Desastres (Cobrade), resumida a seguir:"
+        "Geológico - eventos como movimentação de massa, deslizamentos e erosão entre outros;"
       ),
       p(
-        "Geológico: eventos como movimentação de massa, deslizamentos e erosão entre outros"
+        "Hidrológico - eventos como inundações, enxurradas e alagamentos entre outros;"
       ),
       p(
-        "Hidrológico: eventos como inundações, enxurradas e alagamentos entre outros"
+        "Meteorológico - eventos como tempestades e temperaturas extremas entre outros;"
       ),
       p(
-        "Meteorológico: eventos como tempestades e temperaturas extremas entre outros"
+        "Climatológico - eventos como seca, estiagem e baixa humidade do ar entre outros."
       ),
       p(
-        "Climatológico: eventos como seca, estiagem e baixa humidade do ar entre outros"
-      ),
-      p(
-        "Os eventos biológicos e tecnológicos não são cobertos por este projeto."
-      )
-    ),
-    accordion(
-      multiple = FALSE,
-      accordion_panel(
-        "Financiamento",
-        p("Bla bla bla.")
-      ),
-      accordion_panel(
-        "Contato",
-        p("Bla bla bla.")
+        "Explore nossos painéis e relatórios para acessar informações estratégicas que contribuem para um sistema de saúde mais resiliente e preparado para enfrentar os desafios impostos por eventos climáticos extremos."
       )
     )
   ),
