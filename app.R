@@ -141,7 +141,7 @@ ui <- page_navbar(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
       choices = c(
-        "Todos" = "12",
+        # "Todos" = "12",
         "Trauma- Internação Clínica ou Cirúrgica em todas as idades" = "1",
         "Idoso - Internação Cirúrgica (65 a mais)" = "2",
         "Idoso - Internação Clínica (65 a mais)" = "3",
