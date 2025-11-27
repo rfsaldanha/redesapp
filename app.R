@@ -154,7 +154,7 @@ ui <- page_navbar(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
       choices = c(
-        "Todos" = "12",
+        "Todos" = "13",
         "Trauma- Internação Clínica ou Cirúrgica em todas as idades" = "1",
         "Idoso - Internação Cirúrgica (65 a mais)" = "2",
         "Idoso - Internação Clínica (65 a mais)" = "3",
@@ -381,7 +381,7 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "12") {
+    if (input$proc_group != "13") {
       proc_vct <- proc |>
         filter(cod_grupo == input$proc_group) |>
         select(cod) |>
@@ -544,10 +544,6 @@ server <- function(input, output, session) {
 
     tipo <- input$proc_group
 
-    if (tipo == 12) {
-      tipo <- ""
-    }
-
     horizon <- input$horizon
 
     iframe_url <- glue(
@@ -563,7 +559,7 @@ server <- function(input, output, session) {
   output$net_local <- renderVchart({
     mod_local <- mod_local()
 
-    # print(mod_local, n = 100)
+    print(mod_local, n = 100)
 
     min_date <- as.Date(input$date_even) - input$horizon
     max_date <- as.Date(input$date_even) + input$horizon
@@ -795,7 +791,7 @@ server <- function(input, output, session) {
       filter(dt_inter >= date_even_1 & dt_inter <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "12") {
+    if (input$proc_group != "13") {
       proc_vct <- proc |>
         filter(cod_grupo == input$proc_group) |>
         select(cod) |>
@@ -830,7 +826,10 @@ server <- function(input, output, session) {
       left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
       select(-munic__mov) |>
       rename(munic__mov = name_muni, value = freq) |>
-      select(munic_res, munic__mov, value)
+      select(munic_res, munic__mov, value) |>
+      na.omit()
+
+    print(head(res, n = 100))
 
     if (nrow(res) > 0) {
       i_res <- graph_from_data_frame(res)
@@ -863,7 +862,10 @@ server <- function(input, output, session) {
       left_join(ref_mun_names, by = c("munic__mov" = "code_muni")) |>
       select(-munic__mov) |>
       rename(munic__mov = name_muni, value = freq) |>
-      select(munic_res, munic__mov, value)
+      select(munic_res, munic__mov, value) |>
+      na.omit()
+
+    print(head(res, n = 100))
 
     if (nrow(res) > 0) {
       i_res <- graph_from_data_frame(res)
