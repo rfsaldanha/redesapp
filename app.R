@@ -154,7 +154,7 @@ ui <- page_navbar(
       inputId = "proc_group",
       label = "Grupo de procedimentos",
       choices = c(
-        "Todos" = "13",
+        "Outros" = "13",
         "Trauma- Internação Clínica ou Cirúrgica em todas as idades" = "1",
         "Idoso - Internação Cirúrgica (65 a mais)" = "2",
         "Idoso - Internação Clínica (65 a mais)" = "3",
@@ -167,7 +167,7 @@ ui <- page_navbar(
         "Pediatria- Internação cirúrgica" = "10",
         "Adulto- Internação Cirúrgica de baixa e media complexidade (Todos, 15 a 64)" = "11"
       ),
-      selected = "Todos"
+      selected = "Outros"
     ),
 
     # Select unit
@@ -430,7 +430,7 @@ server <- function(input, output, session) {
       filter(date >= date_even_1 & date <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "Todos") {
+    if (input$proc_group != "Outros") {
       query <- query |>
         filter(tipo == input$proc_group)
     }
@@ -472,7 +472,7 @@ server <- function(input, output, session) {
       filter(date >= date_even_1 & date <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "Todos") {
+    if (input$proc_group != "Outros") {
       query <- query |>
         filter(tipo == input$proc_group)
     }
@@ -514,7 +514,7 @@ server <- function(input, output, session) {
       filter(date >= date_even_1 & date <= date_even_2)
 
     # Filter procedure
-    if (input$proc_group != "Todos") {
+    if (input$proc_group != "Outros") {
       query <- query |>
         filter(tipo == input$proc_group)
     }
